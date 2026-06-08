@@ -48,6 +48,13 @@ class PaymentMethodCreateSerializer(serializers.ModelSerializer):
         identifier_hash = hash_identifier(identifier)
 
         if PaymentMethod.objects.filter(
+            identifier_hash=identifier_hash, is_deleted=False
+        ).exclude(user=user).exists():
+            raise serializers.ValidationError(
+                {'identifier': 'Este identificador ya está registrado en otra cuenta.'}
+            )
+
+        if PaymentMethod.objects.filter(
             user=user, identifier_hash=identifier_hash, is_deleted=False
         ).exists():
             raise serializers.ValidationError(
